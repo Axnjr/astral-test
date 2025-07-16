@@ -1,6 +1,6 @@
 "use client"
 
-import { CalendarKanban } from "@/components/calendar-kanban"
+import { CalendarKanban } from "@/components/Calendar"
 
 export default function Page() {
   return (
