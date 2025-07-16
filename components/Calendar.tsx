@@ -18,32 +18,23 @@ import { MobileDayView } from "./mobile-day-view"
 import { EventCard } from "./event-card"
 import { useMediaQuery } from "@/hooks/use-media-query"
 import { Event, EventsByDate, initialEvents } from "@/lib/events"
+import { motion } from "motion/react"
 
 export function CalendarKanban() {
   const [currentDate, setCurrentDate] = useState(new Date("2024-03-11"))
   const [selectedDay, setSelectedDay] = useState(new Date("2024-03-11"))
   const [events, setEvents] = useState<EventsByDate>(initialEvents)
   const [activeEvent, setActiveEvent] = useState<Event | null>(null)
-  const [selectedEvent, setSelectedEvent] = useState<Event | null>(null)
-  const [mounted, setMounted] = useState(false)
   const isMobile = useMediaQuery("(max-width: 768px)")
 
   const weekStart = startOfWeek(currentDate, { weekStartsOn: 0 })
   const weekDays = Array.from({ length: 7 }, (_, i) => addDays(weekStart, i))
 
-  // Set mounted flag after hydration
-  useEffect(() => {
-    setMounted(true)
-  }, [])
-
   // Sync selectedDay with currentDate when week changes
   useEffect(() => {
     if (!isMobile) {
-      // On desktop, keep selectedDay in sync with currentDate week
       const weekStart = startOfWeek(currentDate, { weekStartsOn: 0 })
       const weekDays = Array.from({ length: 7 }, (_, i) => addDays(weekStart, i))
-      
-      // If selectedDay is not in current week, set it to the first day of the week
       const isInCurrentWeek = weekDays.some(day => isSameDay(day, selectedDay))
       if (!isInCurrentWeek) {
         setSelectedDay(weekStart)
@@ -74,7 +65,6 @@ export function CalendarKanban() {
   )
 
   const handleDragStart = (event: DragStartEvent) => {
-    // Find the dragged event across all dates
     let draggedEvent: Event | null = null
     for (const date in events) {
       const foundEvent = events[date].find((e) => e.id === event.active.id)
@@ -88,25 +78,18 @@ export function CalendarKanban() {
 
   const handleDragEnd = (event: DragEndEvent) => {
     const { active, over } = event
-
     if (!over || !active) {
       setActiveEvent(null)
       return
     }
-
     const eventId = active.id as string
     const newDate = over.id as string
-
     setEvents((prev) => {
       const newEvents = { ...prev }
-      
-      // Find and remove the event from its current date
       for (const date in newEvents) {
         const eventIndex = newEvents[date].findIndex((e) => e.id === eventId)
         if (eventIndex !== -1) {
           const [movedEvent] = newEvents[date].splice(eventIndex, 1)
-          
-          // Add the event to the new date
           if (!newEvents[newDate]) {
             newEvents[newDate] = []
           }
@@ -114,10 +97,8 @@ export function CalendarKanban() {
           break
         }
       }
-      
       return newEvents
     })
-
     setActiveEvent(null)
   }
 
@@ -131,8 +112,6 @@ export function CalendarKanban() {
 
   const handleDaySelect = (day: Date) => {
     setSelectedDay(day)
-    
-    // On mobile, also update currentDate to keep week in sync
     if (isMobile) {
       setCurrentDate(day)
     }
@@ -153,54 +132,35 @@ export function CalendarKanban() {
         onNavigate={navigateWeek}
         isMobile={isMobile}
       />
-
-      {mounted && (
-        <DndContext sensors={sensors} onDragStart={handleDragStart} onDragEnd={handleDragEnd}>
-          <div className="flex-1 overflow-hidden">
-            {isMobile ? (
-              <MobileDayView
-                selectedDay={selectedDay}
-                events={getEventsForDay(selectedDay)}
-                onNavigate={navigateDay}
-                onEventClick={setSelectedEvent}
-              />
-            ) : (
-              <DesktopWeekView 
-                weekDays={weekDays} 
-                getEventsForDay={getEventsForDay} 
-                onEventClick={setSelectedEvent}
-              />
-            )}
-          </div>
-
-          <DragOverlay>
-            {activeEvent && (
-              <div className="rotate-3 scale-105">
-                <EventCard event={activeEvent} isDragging />
-              </div>
-            )}
-          </DragOverlay>
-        </DndContext>
-      )}
-
-      {!mounted && (
+      <DndContext sensors={sensors} onDragStart={handleDragStart} onDragEnd={handleDragEnd}>
         <div className="flex-1 overflow-hidden">
           {isMobile ? (
             <MobileDayView
               selectedDay={selectedDay}
               events={getEventsForDay(selectedDay)}
               onNavigate={navigateDay}
-              onEventClick={setSelectedEvent}
+              onEventClick={() => {}}
             />
           ) : (
-            <DesktopWeekView 
-              weekDays={weekDays} 
-              getEventsForDay={getEventsForDay} 
-              onEventClick={setSelectedEvent}
+            <DesktopWeekView
+              weekDays={weekDays}
+              getEventsForDay={getEventsForDay}
+              onEventClick={() => {}}
             />
           )}
         </div>
-      )}
+        <DragOverlay>
+          {activeEvent && (
+            <motion.div
+              animate={{ scale: 1.05, opacity: 1 }}
+              transition={{ type: "tween", stiffness: 30000, damping: 200, duration: 3 }}
+              className="rotate-3 scale-105"
+            >
+              <EventCard event={activeEvent} isDragging />
+            </motion.div>
+          )}
+        </DragOverlay>
+      </DndContext>
     </div>
   )
 }
