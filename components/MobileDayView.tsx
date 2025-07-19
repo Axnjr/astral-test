@@ -7,6 +7,7 @@ import { useDroppable } from "@dnd-kit/core"
 import { EventCard } from "./EventCard"
 import type { Event } from "@/lib/events"
 import { startOfWeek, endOfWeek, addDays, subDays } from "date-fns"
+import { useMediaQuery } from "@/hooks/useMediaQuery"
 
 interface MobileDayViewProps {
   selectedDay: Date
@@ -20,6 +21,7 @@ export function MobileDayView({ selectedDay, events, onNavigateDay, onNavigateWe
   const [dragX, setDragX] = useState(0)
   const dateStr = format(selectedDay, "yyyy-MM-dd")
   const [direction, setDirection] = useState(0) // 1 for next, -1 for prev
+  const isMobile = useMediaQuery("(max-width: 768px)")
 
   const { setNodeRef, isOver } = useDroppable({
     id: dateStr,
@@ -86,13 +88,12 @@ export function MobileDayView({ selectedDay, events, onNavigateDay, onNavigateWe
         ref={setNodeRef}
         className={`
           h-full p-4 space-y-3 overflow-y-auto relative
-          ${isOver ? "bg-blue-50" : ""}
+          ${isOver && !isMobile ? "bg-blue-50" : ""}
         `}
         drag="x"
         dragConstraints={{ left: 0, right: 0 }}
         dragElastic={0.7}
         onPanEnd={handlePanEnd}
-        // initial={{ x: 0, opacity: 0 }}
         animate={{ x: dragX }}
         transition={{ type: "spring", stiffness: 300, damping: 30 }}
       >
@@ -119,11 +120,7 @@ export function MobileDayView({ selectedDay, events, onNavigateDay, onNavigateWe
               events.map((event) => <div
               key={event.id}
               onPointerDownCapture={(e) => e.stopPropagation()}
-              onPointerDown={(e) => {
-                console.log("pointer down, should be stopping the pan gesture")
-                // Prevent the pan gesture from bubbling up to the parent
-                e.stopPropagation();
-              }}
+              onPointerDown={(e) => e.stopPropagation()}
             >
               <EventCard event={event} onClick={() => onEventClick(event)} />
             </div>)
