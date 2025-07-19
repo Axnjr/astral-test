@@ -40,12 +40,12 @@ export function AddEvent({ event, onClose }: AddEventProps) {
 
   return (
     <motion.div
-      initial={{ opacity: 0 }}
-      animate={{ opacity: 1 }}
+      initial={{ opacity: 0, scale: 0.5 }}
+      animate={{ opacity: 1, scale: 1 }}
       exit={{ opacity: 0 }}
-      className="fixed inset-0 bg-black/60 z-50 flex items-center justify-center p-4"
+      className="fixed inset-0 bg-transparent z-50 flex items-center justify-center p-4"
       onClick={onClose}
-      transition={{ duration: 0.3, ease: "easeInOut" }}
+      transition={{ type: "spring", stiffness: 500, damping: 30, duration: 1 }}
     >
       <motion.div
         layoutId={`event-card-${format(event, "yyyy-MM-dd")}`}
