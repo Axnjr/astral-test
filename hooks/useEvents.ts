@@ -1,12 +1,17 @@
-import { useState, useCallback } from 'react'
-import { format, startOfWeek, addDays, addWeeks, subWeeks, parseISO } from 'date-fns'
-import { Event, initialEvents, transformEventsData } from '@/lib/events' // Import from lib
+import { useState, useCallback, useMemo, useEffect } from 'react'
+import { format, startOfWeek, addDays, addWeeks, subWeeks } from 'date-fns'
+import { Event, getRandomImage, intiateEventFetch } from '@/lib/events'
+import { v4 as uuidv4 } from 'uuid'
 
 export function useEvents() {
     const [currentDate, setCurrentDate] = useState(new Date())
-    // The `events` state is now the single source of truth. It's initialized once.
-    const [events, setEvents] = useState<Event[]>(() => transformEventsData(initialEvents))
-    const [selectedDay, setSelectedDay] = useState<Date>(new Date())
+
+    const getMemoizedEvents = useMemo(() => {
+        return intiateEventFetch(currentDate)
+    }, [currentDate])
+
+    const [events, setEvents] = useState<Event[]>(getMemoizedEvents)
+    const [selectedDay, setSelectedDay] = useState<Date>(currentDate)
     const [activeEvent, setActiveEvent] = useState<Event | null>(null)
     const [selectedEvent, setSelectedEvent] = useState<Event | null>(null)
 
@@ -33,12 +38,11 @@ export function useEvents() {
         )
     }, [])
 
-    const addEvent = useCallback((newEvent: Omit<Event, 'id'>) => {
-        const dateStr = format(parseISO(newEvent.date as string), 'yyyy-MM-dd')
+    const addEvent = useCallback(async (newEvent: Omit<Event, 'id'>) => {
         const newEventWithId = {
             ...newEvent,
-            id: `event-${dateStr}`,
-            imageUrl: "https://framerusercontent.com/images/B0K9QMUiWeDySxhGs5D2pwZro.jpg?scale-down-to=1200",
+            id: `event-${uuidv4()}`,
+            imageUrl: getRandomImage(newEvent.title.length % 20 + 4),
         }
         console.log("adding event", newEventWithId)
         setEvents((prev) => [...prev, newEventWithId])
@@ -50,6 +54,10 @@ export function useEvents() {
 
     const weekStart = startOfWeek(currentDate, { weekStartsOn: 0 })
     const weekDays = Array.from({ length: 7 }, (_, i) => addDays(weekStart, i))
+
+    useEffect(() => {
+        console.log("weekDays", weekDays)
+    }, [weekDays])
 
     return {
         currentDate,
