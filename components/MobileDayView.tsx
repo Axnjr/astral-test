@@ -1,97 +1,132 @@
 "use client"
 
-import { useState } from "react"
+import { useEffect, useState } from "react"
 import { format } from "date-fns"
 import { motion, AnimatePresence, type PanInfo } from "framer-motion"
 import { useDroppable } from "@dnd-kit/core"
 import { EventCard } from "./EventCard"
 import type { Event } from "@/lib/events"
+import { startOfWeek, endOfWeek, addDays, subDays } from "date-fns"
 
 interface MobileDayViewProps {
   selectedDay: Date
   events: Event[]
-  onNavigate: (direction: "prev" | "next") => void
+  onNavigateDay: (direction: "prev" | "next") => void
+  onNavigateWeek: (direction: "prev" | "next") => void
   onEventClick: (event: Event) => void
 }
 
-export function MobileDayView({ selectedDay, events, onNavigate, onEventClick }: MobileDayViewProps) {
-  const [panDirection, setPanDirection] = useState<"next" | "prev" | null>(null)
+export function MobileDayView({ selectedDay, events, onNavigateDay, onNavigateWeek, onEventClick }: MobileDayViewProps) {
+  const [dragX, setDragX] = useState(0)
   const dateStr = format(selectedDay, "yyyy-MM-dd")
+  const [direction, setDirection] = useState(0) // 1 for next, -1 for prev
 
   const { setNodeRef, isOver } = useDroppable({
     id: dateStr,
   })
 
+  const [previousSelectedDay, setPreviousSelectedDay] = useState(selectedDay);
+
+  useEffect(() => {
+    if (selectedDay.getTime() > previousSelectedDay.getTime()) {
+      setDirection(1); // Moving to next day
+    } else if (selectedDay.getTime() < previousSelectedDay.getTime()) {
+      setDirection(-1); // Moving to previous day
+    }
+    setPreviousSelectedDay(selectedDay);
+  }, [selectedDay, previousSelectedDay]);
+
   const handlePanEnd = (event: unknown, info: PanInfo) => {
-    const threshold = 10
+    const threshold = 100
 
     if (Math.abs(info.offset.x) > threshold) {
       if (info.offset.x > 0) {
-        onNavigate("prev")
-        setPanDirection("prev")
+        // Swiping right (going to previous day)
+        const prevDay = subDays(selectedDay, 1)
+        if (prevDay < startOfWeek(selectedDay)) {
+          onNavigateWeek("prev")
+        } else {
+          onNavigateDay("prev")
+        }
       } else {
-        onNavigate("next")
-        setPanDirection("next")
+        // Swiping left (going to next day)
+        const nextDay = addDays(selectedDay, 1)
+        if (nextDay > endOfWeek(selectedDay)) {
+          onNavigateWeek("next")
+        } else {
+          onNavigateDay("next")
+        }
       }
     }
+    setDragX(0)
   }
 
   const variants = {
-    enter: () => ({
-      y: 2,
+    enter: {
       opacity: 0,
-    }),
-    center: {
-      y: 0,
-      opacity: 1,
+      y: 20,
+      borderRadius: "15px",
     },
-    exit: () => ({
-      y: 2,
+    center: {
+      opacity: 1,
+      y: 0,
+      borderRadius: "8px",
+    },
+    exit: {
       opacity: 0,
-    }),
+      y: -20,
+      borderRadius: "15px",
+      position: "absolute",
+    },
   }
 
   return (
-    <div className="h-full overflow-hidden ">
+    <div className="h-full overflow-hidden">
       <motion.div
         ref={setNodeRef}
         className={`
-          h-full p-4 space-y-3 overflow-y-auto
+          h-full p-4 space-y-3 overflow-y-auto relative
           ${isOver ? "bg-blue-50" : ""}
         `}
         drag="x"
         dragConstraints={{ left: 0, right: 0 }}
-        dragElastic={0.2}
+        dragElastic={0.7}
         onPanEnd={handlePanEnd}
-        // Removed animate={{ x: dragX }}
+        // initial={{ x: 0, opacity: 0 }}
+        animate={{ x: dragX }}
         transition={{ type: "spring", stiffness: 300, damping: 30 }}
       >
-        {/* <div className="text-center py-4">
-          <h2 className="text-lg font-semibold text-gray-900">{format(selectedDay, "EEEE, MMMM d")}</h2>
-          <p className="text-sm text-gray-500 mt-1">
-            {events.length} {events.length === 1 ? "event" : "events"}
-          </p>
-        </div> */}
-        <AnimatePresence initial={false} custom={panDirection}>
+        <AnimatePresence mode="popLayout" custom={direction}>
           <motion.div
-            key={dateStr} // Key changes with the day, triggering re-render and animation
-            custom={panDirection}
+            key={dateStr}
             variants={variants}
-            className="flex flex-col gap-6"
             initial="enter"
             animate="center"
             exit="exit"
+            custom={direction}
             transition={{
-              y: { type: "spring", stiffness: 500, damping: 30 },
-              opacity: { duration: 0.2 },
+              y: { type: "spring", stiffness: 300, damping: 30 },
+              opacity: { duration: 0.3 },
+              borderRadius: { duration: 0.5 }
             }}
+            className="w-full h-full space-y-6"
           >
             {events.length === 0 ? (
               <div className="text-center py-12">
                 <p className="text-gray-500">No events scheduled</p>
               </div>
             ) : (
-              events.map((event) => <EventCard key={event.id} event={event} onClick={() => onEventClick(event)} />)
+              events.map((event) => <div
+              key={event.id}
+              onPointerDownCapture={(e) => e.stopPropagation()}
+              onPointerDown={(e) => {
+                console.log("pointer down, should be stopping the pan gesture")
+                // Prevent the pan gesture from bubbling up to the parent
+                e.stopPropagation();
+              }}
+            >
+              <EventCard event={event} onClick={() => onEventClick(event)} />
+            </div>)
             )}
           </motion.div>
         </AnimatePresence>
