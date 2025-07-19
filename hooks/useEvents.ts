@@ -1,5 +1,5 @@
-import { useState, useCallback, useMemo, useEffect } from 'react'
-import { format, startOfWeek, addDays, addWeeks, subWeeks } from 'date-fns'
+import { useState, useCallback, useMemo } from 'react'
+import { format, startOfWeek, addDays, addWeeks, subWeeks, subDays } from 'date-fns'
 import { Event, getRandomImage, intiateEventFetch } from '@/lib/events'
 import { v4 as uuidv4 } from 'uuid'
 
@@ -17,6 +17,11 @@ export function useEvents() {
 
     const navigateWeek = useCallback((direction: 'prev' | 'next') => {
         setCurrentDate((current) => (direction === 'next' ? addWeeks(current, 1) : subWeeks(current, 1)))
+        if (direction === 'next') {
+            setSelectedDay((prev) => addDays(prev, 1))
+        } else {
+            setSelectedDay((prev) => subDays(prev, 1))
+        }
     }, [])
 
     const navigateDay = useCallback((direction: 'prev' | 'next') => {
@@ -55,9 +60,9 @@ export function useEvents() {
     const weekStart = startOfWeek(currentDate, { weekStartsOn: 0 })
     const weekDays = Array.from({ length: 7 }, (_, i) => addDays(weekStart, i))
 
-    useEffect(() => {
-        console.log("weekDays", weekDays)
-    }, [weekDays])
+    // useEffect(() => {
+    //     console.log("weekDays", weekDays)
+    // }, [weekDays])
 
     return {
         currentDate,
