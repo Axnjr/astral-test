@@ -6,7 +6,7 @@ import { Clock } from "lucide-react"
 import type { Event } from "@/lib/events"
 import Image from "next/image"
 import { useRouter } from "next/navigation"
-import { useMemo } from "react"
+import { useMemo, useState } from "react"
 import { useMediaQuery } from "@/hooks/useMediaQuery"
 
 interface EventCardProps {
@@ -18,6 +18,7 @@ interface EventCardProps {
 export function EventCard({ event, onClick, isOverlay = false }: EventCardProps) {
   const router = useRouter()
   const isMobile = useMediaQuery("(max-width: 768px)")
+  const [isDraggingMobile, setIsDraggingMobile] = useState(false)
 
   const {
     attributes,
@@ -26,8 +27,7 @@ export function EventCard({ event, onClick, isOverlay = false }: EventCardProps)
     transform,
     isDragging,
   } = useDraggable({
-    id: event.id,
-    disabled: isOverlay || isMobile,
+    id: event.id
   })
 
   const handleClick = () => {
@@ -38,6 +38,14 @@ export function EventCard({ event, onClick, isOverlay = false }: EventCardProps)
   const motionProps: HTMLMotionProps<"div"> = isOverlay
     ? {
       className: "rounded-lg border select-none overflow-hidden bg-blue-500 text-white opacity-75 shadow-lg cursor-grabbing",
+      animate: {
+        scale: 1.05,
+        boxShadow: "0px 0px 15px rgba(0,0,0,0.2)",
+      },
+      transition: {
+        duration: 0.2,
+      },
+      // layoutId: `event-card-${event.id}`,
     }
     : {
       ref: setNodeRef,
@@ -47,11 +55,27 @@ export function EventCard({ event, onClick, isOverlay = false }: EventCardProps)
       },
       className: "rounded-lg border cursor-pointer select-none overflow-hidden bg-blue-500 text-white shadow-sm hover:shadow-md",
       layout: true,
+      // layoutId: `event-card-${event.id}`,
       onClick: handleClick,
+      animate: {
+        scale: isDraggingMobile ? 1.05 : 1,
+        boxShadow: isDraggingMobile ? "0px 0px 15px rgba(0,0,0,0.2)" : "0px 0px 10px rgba(0,0,0,0.1)",
+      },
+      transition: {
+        duration: 0.2,
+      },
       whileHover: !isMobile ? { scale: 1.02 } : undefined,
-      whileTap: !isMobile ? { scale: 0.98 } : undefined,
       ...listeners,
       ...attributes,
+      onTouchStartCapture: () => {
+        setIsDraggingMobile(true)
+      },
+      onTouchEndCapture: () => {
+        setIsDraggingMobile(false)
+      },
+      onTouchCancelCapture: () => {
+        setIsDraggingMobile(false)
+      }
     }
 
   const containerVariants = useMemo(() => ({

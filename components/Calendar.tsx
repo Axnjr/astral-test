@@ -17,6 +17,7 @@ import { MobileDayView } from "./MobileDayView"
 import { EventCard } from "./EventCard"
 import { useMediaQuery } from "@/hooks/useMediaQuery"
 import { useEventsContext } from "@/contexts/EventContext"
+import { format } from "date-fns"
 
 export function CalendarKanban() {
   const [hasMounted, setHasMounted] = useState(false);
@@ -57,22 +58,44 @@ export function CalendarKanban() {
   )
 
   const handleDragStart = (event: DragStartEvent) => {
-    if (isMobile) return
+    console.log("handleDragStart", event)
     const draggedEvent = events.find((e) => e.id === event.active.id)
     setActiveEvent(draggedEvent || null)
   }
 
   const handleDragEnd = (event: DragEndEvent) => {
-    if (isMobile) return
-    const { active, over } = event
+    const { active, over, delta } = event
 
     if (!over || !active) {
       setActiveEvent(null)
       return
     }
 
+    let newDate = over.id as string
+
+    if (isMobile) {
+      const dayIndex = weekDays.findIndex(day => format(day, "yyyy-MM-dd") === format(selectedDay, "yyyy-MM-dd"))
+      const swipeThreshold = 50 // minimum pixels to trigger day change
+      
+      let newDayIndex = dayIndex
+      if (Math.abs(delta.x) > swipeThreshold) {
+        if (delta.x > 0) {
+          // Swipe right - go to next day
+          newDayIndex = Math.min(dayIndex + 1, weekDays.length - 1)
+        } else {
+          // Swipe left - go to previous day
+          newDayIndex = Math.max(dayIndex - 1, 0)
+        }
+      }
+      
+      const targetDay = weekDays[newDayIndex]
+      if (targetDay) {
+        newDate = format(targetDay, "yyyy-MM-dd")
+        setSelectedDay(targetDay)
+      }
+    }
+
     const eventId = active.id as string
-    const newDate = over.id as string
 
     updateEventDate(eventId, newDate)
     setActiveEvent(null)
@@ -98,7 +121,8 @@ export function CalendarKanban() {
             <MobileDayView
               selectedDay={selectedDay}
               events={getEventsForDay(selectedDay)}
-              onNavigate={navigateDay}
+              onNavigateDay={navigateDay}
+              onNavigateWeek={navigateWeek}
               onEventClick={setSelectedEvent}
             />
           ) : (
@@ -112,7 +136,7 @@ export function CalendarKanban() {
         </div>
 
         <DragOverlay>
-          {activeEvent && !isMobile && (
+          {activeEvent && (
             <EventCard event={activeEvent} isOverlay />
           )}
         </DragOverlay>
