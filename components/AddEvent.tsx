@@ -49,7 +49,7 @@ export function AddEvent({ event, onClose }: AddEventProps) {
     >
       <motion.div
         layoutId={`event-card-${format(event, "yyyy-MM-dd")}`}
-        className="w-full max-w-md rounded-xl p-6 text-white relative bg-gradient-primary"
+        className="w-full max-w-md rounded-xl p-6 text-white relative bg-gradient-active"
         onClick={(e) => e.stopPropagation()}
       >
         <motion.button
@@ -66,7 +66,7 @@ export function AddEvent({ event, onClose }: AddEventProps) {
           <input type="text" placeholder="Event Name" value={title} onChange={(e) => setTitle(e.target.value)} className="w-full p-2 rounded-md bg-white/10 placeholder-white/70 text-white outline-none focus:ring-2 focus:ring-white/50" autoFocus />
           <textarea placeholder="Description..." value={description} onChange={(e) => setDescription(e.target.value)} className="w-full p-2 rounded-md bg-white/10 placeholder-white/70 text-white outline-none focus:ring-2 focus:ring-white/50 h-24 resize-none" />
           <input type="time" value={time} onChange={(e) => setTime(e.target.value)} className="w-full p-2 rounded-md bg-white/10 text-white outline-none focus:ring-2 focus:ring-white/50" />
-          <button type="submit" className="bg-white text-blue-600 font-bold px-4 py-2 rounded-md w-full hover:bg-gray-200 transition-colors">Add Event</button>
+          <button type="submit" className="bg-white text-purple-600 font-bold px-4 py-2 rounded-md w-full hover:bg-gray-200 transition-colors">Add Event</button>
         </form>
       </motion.div>
     </motion.div>
