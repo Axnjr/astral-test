@@ -5,19 +5,15 @@ import { format } from "date-fns"
 import { motion, AnimatePresence, type PanInfo } from "framer-motion"
 import { useDroppable } from "@dnd-kit/core"
 import { EventCard } from "./EventCard"
-import type { Event } from "@/lib/events"
+
 import { startOfWeek, endOfWeek, addDays, subDays } from "date-fns"
 import { useMediaQuery } from "@/hooks/useMediaQuery"
+import { useEventsContext } from "@/contexts/EventContext"
+// import { Button } from "./ui/button"
 
-interface MobileDayViewProps {
-  selectedDay: Date
-  events: Event[]
-  onNavigateDay: (direction: "prev" | "next") => void
-  onNavigateWeek: (direction: "prev" | "next") => void
-  onEventClick: (event: Event) => void
-}
-
-export function MobileDayView({ selectedDay, events, onNavigateDay, onNavigateWeek, onEventClick }: MobileDayViewProps) {
+export function MobileDayView() {
+  const { selectedDay, getEventsForDay, navigateDay, navigateWeek, setSelectedEvent, deleteEvent } = useEventsContext()
+  const events = getEventsForDay(selectedDay)
   const [dragX, setDragX] = useState(0)
   const dateStr = format(selectedDay, "yyyy-MM-dd")
   const [direction, setDirection] = useState(0) // 1 for next, -1 for prev
@@ -46,17 +42,17 @@ export function MobileDayView({ selectedDay, events, onNavigateDay, onNavigateWe
         // Swiping right (going to previous day)
         const prevDay = subDays(selectedDay, 1)
         if (prevDay < startOfWeek(selectedDay)) {
-          onNavigateWeek("prev")
+          navigateWeek("prev")
         } else {
-          onNavigateDay("prev")
+          navigateDay("prev")
         }
       } else {
         // Swiping left (going to next day)
         const nextDay = addDays(selectedDay, 1)
         if (nextDay > endOfWeek(selectedDay)) {
-          onNavigateWeek("next")
+          navigateWeek("next")
         } else {
-          onNavigateDay("next")
+          navigateDay("next")
         }
       }
     }
@@ -93,7 +89,7 @@ export function MobileDayView({ selectedDay, events, onNavigateDay, onNavigateWe
         drag="x"
         dragConstraints={{ left: 0, right: 0 }}
         dragElastic={0.7}
-        onPanEnd={handlePanEnd}
+        onPanEnd={(_, info) => handlePanEnd(_, info)}
         animate={{ x: dragX }}
         transition={{ type: "spring", stiffness: 300, damping: 30 }}
       >
@@ -115,6 +111,7 @@ export function MobileDayView({ selectedDay, events, onNavigateDay, onNavigateWe
             {events.length === 0 ? (
               <div className="text-center py-12">
                 <p className="text-gray-500">No events scheduled</p>
+                {/* <Button onClick={() => onAddEvent()}>Add Event</Button> */}
               </div>
             ) : (
               events.map((event) => <div
@@ -122,7 +119,11 @@ export function MobileDayView({ selectedDay, events, onNavigateDay, onNavigateWe
               onPointerDownCapture={(e) => e.stopPropagation()}
               onPointerDown={(e) => e.stopPropagation()}
             >
-              <EventCard event={event} onClick={() => onEventClick(event)} />
+              <EventCard 
+                event={event} 
+                onClick={() => setSelectedEvent(event)} 
+                deleteEvent={() => deleteEvent(event.id)}
+              />
             </div>)
             )}
           </motion.div>

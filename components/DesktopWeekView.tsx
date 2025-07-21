@@ -5,25 +5,18 @@ import { useDroppable } from "@dnd-kit/core"
 import { EventCard } from "./EventCard"
 import type { Event } from "@/lib/events"
 import { isSameDay } from "date-fns"
-
-interface DesktopWeekViewProps {
-  weekDays: Date[]
-  getEventsForDay: (date: Date) => Event[]
-  onEventClick: (event: Event) => void
-  selectedDay?: Date
-}
+import { useEventsContext } from "@/contexts/EventContext"
 
 function DayColumn({
   day,
   events,
-  onEventClick,
-  isSelected,
+  isSelected
 }: {
   day: Date
   events: Event[]
-  onEventClick: (event: Event) => void
   isSelected?: boolean
 }) {
+  const { setSelectedEvent, deleteEvent } = useEventsContext()
   const dateStr = format(day, "yyyy-MM-dd")
   const { setNodeRef, isOver } = useDroppable({
     id: dateStr,
@@ -40,19 +33,20 @@ function DayColumn({
     >
       <div className="p-3 space-y-2 h-full overflow-y-auto">
         {events.map((event) => (
-          <EventCard key={event.id} event={event} onClick={() => onEventClick(event)} />
+          <EventCard 
+            key={event.id} 
+            event={event} 
+            onClick={() => setSelectedEvent(event)}
+            deleteEvent={() => deleteEvent(event.id)}
+          />
         ))}
       </div>
     </div>
   )
 }
 
-export function DesktopWeekView({
-  weekDays,
-  getEventsForDay,
-  onEventClick,
-  selectedDay
-}: DesktopWeekViewProps) {
+export function DesktopWeekView() {
+  const { weekDays, getEventsForDay, selectedDay } = useEventsContext()
   return (
     <motion.div
       className="flex h-full relative"
@@ -60,13 +54,12 @@ export function DesktopWeekView({
       animate={{ opacity: 1, y: 0 }}
       exit={{ opacity: 0, y: 20 }}
     >
-      {weekDays.map((day) => (
+      {weekDays.map((day, index) => (
         <DayColumn
-          key={format(day, "yyyy-MM-dd")}
+          key={index}
           day={day}
           events={getEventsForDay(day)}
-          onEventClick={onEventClick}
-          isSelected={selectedDay && isSameDay(day, selectedDay)}
+          isSelected={selectedDay ? isSameDay(day, selectedDay) : false}
         />
       ))}
     </motion.div>

@@ -29,10 +29,6 @@ export function CalendarKanban() {
     weekDays,
     setSelectedDay,
     setActiveEvent,
-    setSelectedEvent,
-    navigateWeek,
-    navigateDay,
-    getEventsForDay,
     updateEventDate
   } = useEventsContext()
 
@@ -42,7 +38,6 @@ export function CalendarKanban() {
     setHasMounted(true);
   }, []);
 
-  // ... (sensors and handlers remain the same) ...
   const sensors = useSensors(
     useSensor(PointerSensor, {
       activationConstraint: {
@@ -106,35 +101,16 @@ export function CalendarKanban() {
   }
 
   return (
-    <div className="h-screen flex flex-col bg-neutral-50">
-      <WeekHeader
-        weekDays={weekDays}
-        selectedDay={selectedDay}
-        onDaySelect={setSelectedDay}
-        onNavigate={navigateWeek}
-      />
-
+    <div className="h-screen flex flex-col bg-gradient-surface">
+      <WeekHeader />
       <DndContext sensors={sensors} onDragStart={handleDragStart} onDragEnd={handleDragEnd}>
         <div className="flex-1 overflow-hidden">
-          {/* This part now renders safely on the client */}
           {isMobile ? (
-            <MobileDayView
-              selectedDay={selectedDay}
-              events={getEventsForDay(selectedDay)}
-              onNavigateDay={navigateDay}
-              onNavigateWeek={navigateWeek}
-              onEventClick={setSelectedEvent}
-            />
+            <MobileDayView />
           ) : (
-            <DesktopWeekView
-              weekDays={weekDays}
-              getEventsForDay={getEventsForDay}
-              onEventClick={setSelectedEvent}
-              selectedDay={selectedDay}
-            />
+            <DesktopWeekView />
           )}
         </div>
-
         <DragOverlay>
           {activeEvent && (
             <EventCard event={activeEvent} isOverlay />

@@ -49,7 +49,7 @@ export function AddEvent({ event, onClose }: AddEventProps) {
     >
       <motion.div
         layoutId={`event-card-${format(event, "yyyy-MM-dd")}`}
-        className="w-full max-w-md rounded-xl p-6 text-white relative bg-blue-500"
+        className="w-full max-w-md rounded-xl p-6 text-white relative bg-gradient-primary"
         onClick={(e) => e.stopPropagation()}
       >
         <motion.button
