@@ -128,7 +128,7 @@ export function CalendarKanban() {
             <DesktopWeekView />
           )}
         </div>
-        <DragOverlay>
+        <DragOverlay {...(isMobile && { dropAnimation: null })}>
           {dragOverlay}
         </DragOverlay>
       </DndContext>

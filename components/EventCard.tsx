@@ -53,12 +53,12 @@ export const EventCard = memo(function EventCard({
   const motionProps: HTMLMotionProps<"div"> = useMemo(() => {
     if (isOverlay) {
       return {
-        className: "rounded-lg border select-none overflow-hidden bg-gradient-active text-white opacity-75 shadow-lg cursor-grabbing",
+        className: "rounded-lg border select-none overflow-hidden bg-gradient-active text-white shadow-lg cursor-grabbing",
         animate: {
           scale: 1.05,
           boxShadow: "0px 0px 15px rgba(0,0,0,0.2)",
         },
-        transition: { duration: 0.2 }
+        transition: { duration: 0.2, ease: "easeInOut" }
       }
     }
 
@@ -66,7 +66,7 @@ export const EventCard = memo(function EventCard({
       ref: setNodeRef,
       style: {
         transform: transform ? `translate3d(${transform.x}px, ${transform.y}px, 0)` : undefined,
-        visibility: isDragging ? 'hidden' : 'visible',
+        opacity: isDragging ? 0 : 1,
       },
       className: "rounded-lg border cursor-pointer select-none overflow-hidden bg-gradient-active text-white shadow-sm hover:shadow-md",
       layout: isMobile,
@@ -76,7 +76,7 @@ export const EventCard = memo(function EventCard({
         scale: isDraggingMobile ? 1.05 : 1,
         boxShadow: isDraggingMobile ? "0px 0px 15px rgba(0,0,0,0.2)" : "0px 0px 10px rgba(0,0,0,0.1)",
       },
-      transition: { duration: 0.2 },
+      transition: { duration: 0.2, ease: "easeInOut" },
       whileHover: !isMobile ? { scale: 1.02 } : undefined,
       ...listeners,
       ...attributes,
