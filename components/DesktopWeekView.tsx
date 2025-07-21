@@ -1,6 +1,6 @@
 "use client"
 import { format } from "date-fns"
-import { motion } from "motion/react"
+import { motion } from "framer-motion"
 import { useDroppable } from "@dnd-kit/core"
 import { EventCard } from "./EventCard"
 import type { Event } from "@/lib/events"

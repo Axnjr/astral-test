@@ -3,11 +3,9 @@
 import { format, isSameDay, isToday } from "date-fns"
 import { ChevronLeft, ChevronRight } from "lucide-react"
 import { Button } from "@/components/ui/button"
-// import { AnimatePresence } from "motion/react"
-import * as motion from "motion/react-client"
+import { motion, AnimatePresence } from "framer-motion"
 import { AddEvent } from "./AddEvent"
 import { useState } from "react"
-import { AnimatePresence } from "framer-motion"
 import { useEventsContext } from "@/contexts/EventContext"
 
 export function WeekHeader() {

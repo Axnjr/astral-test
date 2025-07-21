@@ -66,7 +66,6 @@ export function MobileDayView() {
       opacity: 0,
       y: -20,
       borderRadius: "15px",
-      position: "absolute",
     },
   }), [])
 
