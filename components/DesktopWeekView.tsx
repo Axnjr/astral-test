@@ -16,7 +16,7 @@ function DayColumn({
   events: Event[]
   isSelected?: boolean
 }) {
-  const { setSelectedEvent, deleteEvent } = useEventsContext()
+  const { setSelectedEvent } = useEventsContext()
   const dateStr = format(day, "yyyy-MM-dd")
   const { setNodeRef, isOver } = useDroppable({
     id: dateStr,
@@ -26,18 +26,17 @@ function DayColumn({
     <div
       ref={setNodeRef}
       className={`
-        flex-1 min-h-0 border-r border-gray-200 last:border-r-0 
-        ${isOver ? "bg-neutral-50" : ""}
-        ${isSelected ? "bg-blue-50 border-blue-100" : ""}
+        flex-1 min-h-0 border-r border-gray-200 last:border-r-0 overflow-hidden
+        ${isOver ? "bg-purple-100" : ""}
+        ${isSelected ? "bg-purple-100 border-purple-100" : ""}
       `}
     >
-      <div className="p-3 space-y-2 h-full overflow-y-auto">
+      <div className="p-3 space-y-2 h-full">
         {events.map((event) => (
           <EventCard 
             key={event.id} 
             event={event} 
             onClick={() => setSelectedEvent(event)}
-            deleteEvent={() => deleteEvent(event.id)}
           />
         ))}
       </div>

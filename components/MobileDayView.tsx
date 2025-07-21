@@ -1,18 +1,16 @@
 "use client"
 
-import { useEffect, useState } from "react"
+import { useEffect, useState, useCallback, useMemo } from "react"
 import { format } from "date-fns"
 import { motion, AnimatePresence, type PanInfo } from "framer-motion"
 import { useDroppable } from "@dnd-kit/core"
 import { EventCard } from "./EventCard"
-
-import { startOfWeek, endOfWeek, addDays, subDays } from "date-fns"
 import { useMediaQuery } from "@/hooks/useMediaQuery"
 import { useEventsContext } from "@/contexts/EventContext"
-// import { Button } from "./ui/button"
+import { Event } from "@/lib/events"
 
 export function MobileDayView() {
-  const { selectedDay, getEventsForDay, navigateDay, navigateWeek, setSelectedEvent, deleteEvent } = useEventsContext()
+  const { selectedDay, getEventsForDay, navigateDay, setSelectedEvent } = useEventsContext()
   const events = getEventsForDay(selectedDay)
   const [dragX, setDragX] = useState(0)
   const dateStr = format(selectedDay, "yyyy-MM-dd")
@@ -34,32 +32,26 @@ export function MobileDayView() {
     setPreviousSelectedDay(selectedDay);
   }, [selectedDay, previousSelectedDay]);
 
-  const handlePanEnd = (event: unknown, info: PanInfo) => {
+  const handlePanEnd = useCallback((event: unknown, info: PanInfo) => {
     const threshold = 100
 
     if (Math.abs(info.offset.x) > threshold) {
       if (info.offset.x > 0) {
         // Swiping right (going to previous day)
-        const prevDay = subDays(selectedDay, 1)
-        if (prevDay < startOfWeek(selectedDay)) {
-          navigateWeek("prev")
-        } else {
-          navigateDay("prev")
-        }
+        navigateDay("prev")
       } else {
         // Swiping left (going to next day)
-        const nextDay = addDays(selectedDay, 1)
-        if (nextDay > endOfWeek(selectedDay)) {
-          navigateWeek("next")
-        } else {
-          navigateDay("next")
-        }
+        navigateDay("next")
       }
     }
     setDragX(0)
-  }
+  }, [navigateDay])
 
-  const variants = {
+  const handleEventClick = useCallback((event: Event) => {
+    setSelectedEvent(event)
+  }, [setSelectedEvent])
+
+  const variants = useMemo(() => ({
     enter: {
       opacity: 0,
       y: 20,
@@ -76,10 +68,12 @@ export function MobileDayView() {
       borderRadius: "15px",
       position: "absolute",
     },
-  }
+  }), [])
+
+  const memoizedEvents = useMemo(() => events, [events])
 
   return (
-    <div className="h-full overflow-hidden">
+    <div className="mobile-events-container h-full overflow-hidden relative">
       <motion.div
         ref={setNodeRef}
         className={`
@@ -89,9 +83,10 @@ export function MobileDayView() {
         drag="x"
         dragConstraints={{ left: 0, right: 0 }}
         dragElastic={0.7}
-        onPanEnd={(_, info) => handlePanEnd(_, info)}
+        onPanEnd={handlePanEnd}
         animate={{ x: dragX }}
         transition={{ type: "spring", stiffness: 300, damping: 30 }}
+        style={{ touchAction: 'pan-y pinch-zoom' }}
       >
         <AnimatePresence mode="popLayout" custom={direction}>
           <motion.div
@@ -106,25 +101,25 @@ export function MobileDayView() {
               opacity: { duration: 0.3 },
               borderRadius: { duration: 0.5 }
             }}
-            className="w-full h-full space-y-6"
+            className="w-full h-[90%] space-y-6 overflow-hidden"
           >
-            {events.length === 0 ? (
+            {memoizedEvents.length === 0 ? (
               <div className="text-center py-12">
                 <p className="text-gray-500">No events scheduled</p>
-                {/* <Button onClick={() => onAddEvent()}>Add Event</Button> */}
               </div>
             ) : (
-              events.map((event) => <div
-              key={event.id}
-              onPointerDownCapture={(e) => e.stopPropagation()}
-              onPointerDown={(e) => e.stopPropagation()}
-            >
-              <EventCard 
-                event={event} 
-                onClick={() => setSelectedEvent(event)} 
-                deleteEvent={() => deleteEvent(event.id)}
-              />
-            </div>)
+              memoizedEvents.map((event) => (
+                <div
+                  key={event.id}
+                  onPointerDownCapture={(e) => e.stopPropagation()}
+                >
+                  <EventCard 
+                    event={event} 
+                    onClick={() => handleEventClick(event)} 
+                    enableLayoutId={true}
+                  />
+                </div>
+              ))
             )}
           </motion.div>
         </AnimatePresence>

@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback, useMemo } from "react";
 import { 
   DndContext, 
   type DragEndEvent, 
@@ -15,6 +15,7 @@ import { WeekHeader } from "./WeekHeader"
 import { DesktopWeekView } from "./DesktopWeekView"
 import { MobileDayView } from "./MobileDayView"
 import { EventCard } from "./EventCard"
+import { EventModal } from "./EventModal"
 import { useMediaQuery } from "@/hooks/useMediaQuery"
 import { useEventsContext } from "@/contexts/EventContext"
 import { format } from "date-fns"
@@ -29,7 +30,10 @@ export function CalendarKanban() {
     weekDays,
     setSelectedDay,
     setActiveEvent,
-    updateEventDate
+    updateEventDate,
+    selectedEvent,
+    setSelectedEvent,
+    deleteEvent
   } = useEventsContext()
 
   const isMobile = useMediaQuery("(max-width: 768px)")
@@ -52,13 +56,13 @@ export function CalendarKanban() {
     }),
   )
 
-  const handleDragStart = (event: DragStartEvent) => {
+  const handleDragStart = useCallback((event: DragStartEvent) => {
     console.log("handleDragStart", event)
     const draggedEvent = events.find((e) => e.id === event.active.id)
     setActiveEvent(draggedEvent || null)
-  }
+  }, [events, setActiveEvent])
 
-  const handleDragEnd = (event: DragEndEvent) => {
+  const handleDragEnd = useCallback((event: DragEndEvent) => {
     const { active, over, delta } = event
 
     if (!over || !active) {
@@ -94,14 +98,27 @@ export function CalendarKanban() {
 
     updateEventDate(eventId, newDate)
     setActiveEvent(null)
-  }
+  }, [isMobile, weekDays, selectedDay, setSelectedDay, updateEventDate, setActiveEvent])
+
+  const handleCloseModal = useCallback(() => {
+    setSelectedEvent(null)
+  }, [setSelectedEvent])
+
+  const handleDeleteEvent = useCallback((eventId: string) => {
+    deleteEvent(eventId)
+  }, [deleteEvent])
+
+  const dragOverlay = useMemo(() => {
+    if (!activeEvent) return null
+    return <EventCard event={activeEvent} isOverlay />
+  }, [activeEvent])
 
   if (!hasMounted) {
     return null;
   }
 
   return (
-    <div className="h-screen flex flex-col bg-gradient-surface">
+    <div className="h-screen flex flex-col bg-gradient-surface overflow-x-hidden">
       <WeekHeader />
       <DndContext sensors={sensors} onDragStart={handleDragStart} onDragEnd={handleDragEnd}>
         <div className="flex-1 overflow-hidden">
@@ -112,11 +129,16 @@ export function CalendarKanban() {
           )}
         </div>
         <DragOverlay>
-          {activeEvent && (
-            <EventCard event={activeEvent} isOverlay />
-          )}
+          {dragOverlay}
         </DragOverlay>
       </DndContext>
+      
+      <EventModal
+        event={selectedEvent}
+        isOpen={!!selectedEvent}
+        onClose={handleCloseModal}
+        onDelete={handleDeleteEvent}
+      />
     </div>
   )
 }
