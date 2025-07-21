@@ -41,6 +41,17 @@
   --radius-md: calc(var(--radius) - 2px);
   --radius-lg: var(--radius);
   --radius-xl: calc(var(--radius) + 4px);
+  
+  /* Custom gradient backgrounds */
+  --gradient-background: linear-gradient(135deg, #a7a7a7 0%, #eef1f9 100%);
+  --gradient-header: linear-gradient(to right, #3b82f6, #8b5cf6);
+  --gradient-active: linear-gradient(135deg, #4f46e5, #7c3aed);
+  --gradient-surface: linear-gradient(135deg, #f3f4f6 0%, #fdf2f8 50%, #fff7ed 100%);
+  --gradient-surface-hover: linear-gradient(135deg, #fef3c7 0%, #fce7f3 50%, #fed7aa 100%);
+}
+
+body::-webkit-scrollbar {
+  display: none;
 }
 
 :root {
@@ -76,6 +87,13 @@
   --sidebar-accent-foreground: oklch(0.205 0 0);
   --sidebar-border: oklch(0.922 0 0);
   --sidebar-ring: oklch(0.708 0 0);
+  
+  /* Custom gradient backgrounds */
+  --gradient-background: linear-gradient(135deg, #f6f8ff 0%, #eef1f9 100%);
+  --gradient-header: linear-gradient(to right, #3b82f6, #8b5cf6);
+  --gradient-active: linear-gradient(135deg, #4f46e5, #7c3aed);
+  --gradient-surface: linear-gradient(135deg, #f3f4f6 0%, #fdf2f8 50%, #fff7ed 100%);
+  --gradient-surface-hover: linear-gradient(135deg, #fef3c7 0%, #fce7f3 50%, #fed7aa 100%);
 }
 
 .dark {
@@ -118,5 +136,41 @@
   }
   body {
     @apply bg-background text-foreground;
+  }
+}
+
+@layer utilities {
+  .bg-gradient-background {
+    background: var(--gradient-background);
+  }
+  
+  .bg-gradient-header {
+    background: var(--gradient-header);
+  }
+  
+  .bg-gradient-active {
+    background: var(--gradient-active);
+  }
+  
+  .bg-gradient-surface {
+    background: var(--gradient-surface);
+  }
+  
+  .bg-gradient-surface-hover {
+    background: var(--gradient-surface-hover);
+  }
+  
+  .text-gradient-header {
+    background: var(--gradient-header);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+  
+  .text-gradient-active {
+    background: var(--gradient-active);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
   }
 }

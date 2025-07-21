@@ -27,7 +27,8 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body
-        className={`${geistSans.variable} ${geistMono.variable} antialiased`}
+        className={`${geistSans.variable} ${geistMono.variable} antialiased overflow-hidden`}
+        style={{ touchAction: 'pan-y pinch-zoom' }}
       >
         <EventsProvider>
           <AnimatePresence mode="popLayout" initial={false}>
