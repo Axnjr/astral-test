@@ -1,51 +1,26 @@
 "use client"
 
-import { useEffect, useState, useCallback, useMemo } from "react"
+import { useCallback, useMemo } from "react"
 import { format } from "date-fns"
-import { motion, AnimatePresence, type PanInfo } from "framer-motion"
+import { motion, AnimatePresence } from "framer-motion"
 import { useDroppable } from "@dnd-kit/core"
 import { EventCard } from "./EventCard"
 import { useMediaQuery } from "@/hooks/useMediaQuery"
 import { useEventsContext } from "@/contexts/EventContext"
 import { Event } from "@/lib/events"
+import { useSwipeNavigation } from "@/hooks/useSwipeNavigation"
 
 export function MobileDayView() {
   const { selectedDay, getEventsForDay, navigateDay, setSelectedEvent } = useEventsContext()
   const events = getEventsForDay(selectedDay)
-  const [dragX, setDragX] = useState(0)
   const dateStr = format(selectedDay, "yyyy-MM-dd")
-  const [direction, setDirection] = useState(0) // 1 for next, -1 for prev
   const isMobile = useMediaQuery("(max-width: 768px)")
 
   const { setNodeRef, isOver } = useDroppable({
     id: dateStr,
   })
 
-  const [previousSelectedDay, setPreviousSelectedDay] = useState(selectedDay);
-
-  useEffect(() => {
-    if (selectedDay.getTime() > previousSelectedDay.getTime()) {
-      setDirection(1); // Moving to next day
-    } else if (selectedDay.getTime() < previousSelectedDay.getTime()) {
-      setDirection(-1); // Moving to previous day
-    }
-    setPreviousSelectedDay(selectedDay);
-  }, [selectedDay, previousSelectedDay]);
-
-  const handlePanEnd = useCallback((event: unknown, info: PanInfo) => {
-    const threshold = 100
-
-    if (Math.abs(info.offset.x) > threshold) {
-      if (info.offset.x > 0) {
-        // Swiping right (going to previous day)
-        navigateDay("prev")
-      } else {
-        // Swiping left (going to next day)
-        navigateDay("next")
-      }
-    }
-    setDragX(0)
-  }, [navigateDay])
+  const { dragX, direction, handlePanEnd } = useSwipeNavigation(navigateDay, selectedDay)
 
   const handleEventClick = useCallback((event: Event) => {
     setSelectedEvent(event)

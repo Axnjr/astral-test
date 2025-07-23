@@ -20,7 +20,7 @@ import { useMediaQuery } from "@/hooks/useMediaQuery"
 import { useEventsContext } from "@/contexts/EventContext"
 import { format } from "date-fns"
 
-export function CalendarKanban() {
+export function Calendar() {
   const [hasMounted, setHasMounted] = useState(false);
 
   const {
